@@ -1,12 +1,14 @@
 # mnist-web
-This little snippet recognises handwritten digits. 
+This little snippet recognises handwritten digits.
+
 It was made as a support for teaching neural networks, as it is more fun to play with than accuracy number on the test set!
 
+# what's inside?
 The input is done by the user in a web page using javascript. The model runs with tensorflow (1.5) and is served using flask.
 
 2 models are provided:
- - one very simple to demonstrate tensorflow's lower level API
- - a more complex CNN
+- one very simple to demonstrate tensorflow's lower level API
+- a more complex CNN with better results
  
 The second model is used by default.
 It is loosely inspired by mobilenet and LeCun's models.
@@ -18,3 +20,12 @@ Overall the accuracy reaches ~99.3%
 
 # demo
 ![](https://user-images.githubusercontent.com/5497622/39972447-3f8468dc-5710-11e8-91bf-0e674be394a8.gif)
+
+# howto
+1. Launch the model server:  `python serve.py`
+ 
+1. Put the web folder on your web server
+ 
+1. Enjoy!
+
+**note by default the url for the model is http://127.0.0.1:30500/api change it as needed (in web/index.html)*

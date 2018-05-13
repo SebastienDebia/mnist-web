@@ -1,0 +1,126 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+        <link rel="stylesheet" href="custom.css">
+    </head>
+    <body>
+        <div class="container col-lg-6" style="margin-top: 10px;">
+            <div style="padding-bottom: 0.5cm">
+                <div class="card text-center bg-light">
+                    <div class="card-body" style="padding-bottom: 0.2cm">
+                        <canvas id="imageView"
+                                style="display:block; margin: 0 auto; margin-top: 10px; box-sizing: content-box; padding: 0px; border: 1px solid #000;width: 280px; height:280px"> <!--class="card-title form-control"-->
+                        </canvas>
+                        <canvas id="imageViewSmall"
+                                style="visibility:hidden; box-sizing: content-box; padding: 0px; border: 1px solid #000;width: 28px; height:28px"> <!--class="card-title form-control"-->
+                        </canvas>
+                        <button class="card-text btn btn-outline-primary" id="rst">Reset</button>
+                        <button class="card-text btn btn-outline-primary" id="btn">Predict</button>
+                        <div class="spinner" id="spinner" style="display: none">
+                        <div class="double-bounce1"></div>
+                        <div class="double-bounce2"></div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <pre class="card-text api-pre" style="padding-bottom: 0.2cm">
+                                <div class="item" id="api_output"></div>
+                                <div class="item" id="api_output_prob"></div>
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        function indexOfMax(arr) {
+            if (arr.length === 0) {
+                return -1;
+            }
+
+            var max = arr[0];
+            var maxIndex = 0;
+
+            for (var i = 1; i < arr.length; i++) {
+                if (arr[i] > max) {
+                    maxIndex = i;
+                    max = arr[i];
+                }
+            }
+
+            return maxIndex;
+        }
+
+        function api_call(input) {
+            // hide button and make the spinner appear
+            $('#btn').toggle();
+            $('#spinner').toggle();
+
+            $.ajax({
+                url: "http://127.0.0.1:30500/api",
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(input),
+
+                success: function( data, textStatus, jQxhr ){
+                    // toggle the spinner and button
+                    $('#btn').toggle();
+                    $('#spinner').toggle();
+
+                    data = data[0]
+
+                    $('#api_output').html( indexOfMax(data) );
+                    $('#api_output_prob').html( data[indexOfMax(data)] * 100 + "%" );
+
+                    $("#input").val("");
+                },
+                error: function( jqXhr, textStatus, errorThrown ){
+                    $('#btn').toggle();
+                    $('#spinner').toggle();
+
+                    $('#api_output').html( "Sorry, the server is asleep..." );
+                    $('#api_output_prob').html( "Try again in a moment!" );
+
+                    console.log( errorThrown );
+                },
+                timeout: 5000 // sets timeout to 5 seconds
+            });
+        }
+
+        $( document ).ready(function() {
+
+            canvasSmall = $("#imageViewSmall")[0];
+            canvasSmall.width = canvasSmall.clientWidth;
+            canvasSmall.height = canvasSmall.clientHeight;
+
+            // when clicking on the reset button
+            $('#rst').click(function() {
+                var context = $("#imageView")[0].getContext("2d");
+
+                context.beginPath();
+                context.rect(0, 0, 280, 280);
+                context.fillStyle = "black";
+                context.fill();
+            });
+
+            // request when clicking on the predict button
+            $('#btn').click(function() {
+                // get the input data
+                var srcCtx = $("#imageView")[0].getContext("2d");
+                var imageData = srcCtx.getImageData(0, 0, 280, 280);
+                var destCtx = $("#imageViewSmall")[0].getContext("2d");
+
+                canvas = $("#imageView")[0]
+                destCtx.drawImage( canvas, 0, 0, 0.1*canvas.width, 0.1*canvas.height );
+
+                var input = $("#imageViewSmall")[0].getContext("2d").getImageData(0,0,28,28).data;
+                function filtrerParIndex(elt, index){ return (index) % 4 == 0; }
+                input = input.filter(filtrerParIndex);
+                input = Array.prototype.slice.call(input);
+                input = input.map(function(x) { return x / 255; });
+                api_call(input);
+            });
+        });
+    </script>
+    <script type="text/javascript" src="drawing.js"></script>
+</html>
